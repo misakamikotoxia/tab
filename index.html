@@ -4,14 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>起始页</title>
+    <title>起始页 (Pro Storage)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --bg-gradient-1: #1a1a2e;
@@ -22,10 +19,10 @@
             --accent-2: #a855f7;
             --accent-glow: rgba(99, 102, 241, 0.4);
             
-            /* ===== 动态变量默认值 ===== */
-            --bg-overlay-opacity: 0.2; /* 默认遮罩浓度 */
-            --bg-blur: 0px;            /* 默认模糊度 */
-            --bg-brightness: 100%;     /* 默认亮度 */
+            /* Dynamic Display Variables */
+            --bg-overlay-opacity: 0.2;
+            --bg-blur: 0px;
+            --bg-brightness: 100%;
         }
 
         body {
@@ -42,394 +39,167 @@
             transition: background 0.3s ease;
         }
 
-        body.has-background {
-            background: #000;
-        }
+        body.has-background { background: #000; }
 
-        /* ===== 自定义背景优化 ===== */
         #customBackground {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            z-index: 0;
-            opacity: 0;
-            transition: opacity 0.5s ease; /* 仅过渡 opacity，滤镜实时响应 */
-            
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            object-fit: cover; z-index: 0; opacity: 0;
+            transition: opacity 0.5s ease, filter 0.2s ease;
             image-rendering: -webkit-optimize-contrast;
-            transform: translateZ(0);
-            backface-visibility: hidden;
-
-            /* 应用动态滤镜变量 */
+            transform: translateZ(0); backface-visibility: hidden;
             filter: blur(var(--bg-blur)) brightness(var(--bg-brightness));
         }
 
-        #customBackground.visible {
-            opacity: 1;
-        }
+        #customBackground.visible { opacity: 1; }
 
         .background-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            /* 应用动态遮罩变量 */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, var(--bg-overlay-opacity));
-            z-index: 0;
-            opacity: 0;
-            transition: opacity 0.3s ease; /* 仅过渡显隐 */
+            z-index: 0; opacity: 0; transition: opacity 0.3s ease;
             pointer-events: none;
         }
 
-        body.has-background .background-overlay {
-            opacity: 1;
-        }
+        body.has-background .background-overlay { opacity: 1; }
 
-        /* 简洁模式 */
-        body.minimal-mode .container {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0.95);
-        }
+        body.minimal-mode .container { opacity: 0; pointer-events: none; transform: scale(0.95); }
+        body.minimal-mode .particles { opacity: 0; }
 
-        body.minimal-mode .particles {
-            opacity: 0;
-        }
-
-        /* 顶部控制按钮区域 */
+        /* Top Controls */
         .top-controls {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            padding: 2rem;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            position: fixed; top: 0; left: 0; right: 0; height: 80px; z-index: 1000;
+            display: flex; justify-content: space-between; padding: 2rem;
+            opacity: 0; transition: opacity 0.3s ease;
         }
+        .top-controls:hover, .top-controls.show { opacity: 1; }
 
-        .top-controls:hover,
-        .top-controls.show {
-            opacity: 1;
-        }
-
-        .controls-left,
-        .controls-right {
-            display: flex;
-            gap: 0.8rem;
-        }
+        .controls-left, .controls-right { display: flex; gap: 0.8rem; }
 
         .control-btn {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: none;
-            border-radius: 12px;
-            padding: 0;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); border: none; border-radius: 12px;
+            padding: 0; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary);
+            font-size: 1.2rem; width: 40px; height: 40px; display: flex;
+            align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
+        .control-btn:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.05); }
 
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(1.05);
-        }
-
-        /* 设置面板 */
+        /* Settings Panel */
         .settings-panel {
-            position: fixed;
-            top: 0;
-            left: -400px;
-            width: 400px;
-            height: 100%;
-            background: rgba(22, 33, 62, 0.9);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            z-index: 2000;
-            padding: 2rem;
-            overflow-y: auto;
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: fixed; top: 0; left: -400px; width: 400px; height: 100%;
+            background: rgba(22, 33, 62, 0.9); backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px); z-index: 2000; padding: 2rem;
+            overflow-y: auto; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 10px 0 40px rgba(0, 0, 0, 0.3);
         }
+        .settings-panel.open { left: 0; }
 
-        .settings-panel.open {
-            left: 0;
-        }
-
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .settings-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .settings-title { font-size: 1.5rem; font-weight: 700; }
         .close-settings {
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            transition: transform 0.2s;
+            background: transparent; border: none; color: var(--text-primary);
+            font-size: 1.5rem; cursor: pointer; padding: 0.5rem; transition: transform 0.2s;
         }
-
-        .close-settings:hover {
-            transform: rotate(90deg);
-        }
+        .close-settings:hover { transform: rotate(90deg); }
 
         .settings-section {
-            margin-bottom: 2rem;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1.2rem;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 2rem; background: rgba(255, 255, 255, 0.03);
+            padding: 1.2rem; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05);
         }
-
         .settings-section-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--accent-1);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-size: 1rem; font-weight: 600; margin-bottom: 1rem;
+            color: var(--accent-1); display: flex; align-items: center; gap: 0.5rem;
         }
 
-        .settings-input-group {
-            margin-bottom: 1rem;
-        }
-
+        .settings-input-group { margin-bottom: 1rem; }
         .settings-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-secondary);
+            display: flex; justify-content: space-between; font-size: 0.9rem;
+            margin-bottom: 0.5rem; color: var(--text-secondary);
         }
-        
-        .settings-label span:last-child {
-            font-family: monospace;
-            color: var(--accent-1);
-        }
+        .settings-label span:last-child { font-family: monospace; color: var(--accent-1); }
 
         .settings-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 0.8rem;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.2s;
+            width: 100%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px; padding: 0.8rem; color: var(--text-primary); font-size: 0.9rem;
+            outline: none; transition: all 0.2s;
         }
+        .settings-input:focus { border-color: var(--accent-1); background: rgba(255, 255, 255, 0.15); }
 
-        .settings-input:focus {
-            border-color: var(--accent-1);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        /* ===== 滑块样式优化 ===== */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-            margin: 8px 0;
-        }
-        
-        input[type=range]:focus {
-            outline: none;
-        }
-        
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 8px 0; }
+        input[type=range]:focus { outline: none; }
         input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 6px;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
+            width: 100%; height: 6px; cursor: pointer; background: rgba(255, 255, 255, 0.2); border-radius: 3px;
         }
-        
         input[type=range]::-webkit-slider-thumb {
-            height: 18px;
-            width: 18px;
-            border-radius: 50%;
-            background: #ffffff;
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -6px; /* 垂直居中 */
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
+            height: 18px; width: 18px; border-radius: 50%; background: #ffffff; cursor: pointer;
+            -webkit-appearance: none; margin-top: -6px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: transform 0.1s;
         }
-        
-        input[type=range]:focus::-webkit-slider-thumb {
-            transform: scale(1.2);
-            background: var(--accent-1);
-        }
+        input[type=range]:focus::-webkit-slider-thumb { transform: scale(1.2); background: var(--accent-1); }
 
-        .settings-btn-group {
-            display: flex;
-            gap: 0.5rem;
+        .settings-btn-group { display: flex; gap: 0.5rem; margin-top: 1rem; }
+        .settings-btn-primary, .settings-btn-secondary {
+            flex: 1; padding: 0.8rem; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
         }
-
         .settings-btn-primary {
-            flex: 1;
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-            border: none;
-            color: white;
-            padding: 0.8rem;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); border: none; color: white;
         }
-
         .settings-btn-secondary {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-            padding: 0.8rem;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background 0.2s;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-primary);
         }
 
-        .shortcuts-list {
-            margin-top: 1rem;
-        }
-
+        .shortcuts-list { margin-top: 1rem; }
         .shortcut-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 0.8rem;
-            margin-bottom: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 0.8rem;
+            margin-bottom: 0.8rem; display: flex; align-items: center; gap: 1rem;
         }
+        .shortcut-item-icon { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
+        .shortcut-item-info { flex: 1; min-width: 0; }
+        .shortcut-item-name { font-weight: 500; font-size: 0.9rem; margin-bottom: 0.2rem; }
+        .shortcut-item-url { font-size: 0.8rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .shortcut-item-key { background: var(--accent-1); color: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; font-family: monospace; }
+        .shortcut-item-delete { background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1.2rem; padding: 0.5rem; }
 
-        .shortcut-item-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            flex-shrink: 0;
+        .bg-image-list {
+            margin-top: 1rem; max-height: 250px; overflow-y: auto;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px; padding: 5px; background: rgba(0,0,0,0.2); border-radius: 8px; min-height: 90px;
         }
-
-        .shortcut-item-info {
-            flex: 1;
-            min-width: 0;
+        .bg-image-item {
+            position: relative; border-radius: 8px; overflow: hidden;
+            aspect-ratio: 1 / 1; background: rgba(255,255,255,0.05);
+            cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s;
         }
-
-        .shortcut-item-name {
-            font-weight: 500;
-            font-size: 0.9rem;
-            margin-bottom: 0.2rem;
+        .bg-image-item.active { border-color: var(--accent-1); }
+        .bg-image-item-thumb { width: 100%; height: 100%; object-fit: cover; }
+        .bg-image-item-delete {
+            position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6);
+            color: white; border: none; border-radius: 50%; width: 20px; height: 20px;
+            font-size: 14px; line-height: 20px; text-align: center; cursor: pointer;
+            opacity: 0; transition: opacity 0.2s;
         }
+        .bg-image-item:hover .bg-image-item-delete { opacity: 1; }
 
-        .shortcut-item-url {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .shortcut-item-key {
-            background: var(--accent-1);
-            color: white;
-            padding: 0.3rem 0.6rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            font-family: monospace;
-        }
-
-        .shortcut-item-delete {
-            background: transparent;
-            border: none;
-            color: #ef4444;
-            cursor: pointer;
-            font-size: 1.2rem;
-            padding: 0.5rem;
-        }
-
-        /* 快捷键提示 */
         .keyboard-hint {
-            position: fixed;
-            bottom: 3rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 0.8rem 1.5rem;
-            font-size: 0.9rem;
-            color: white;
-            z-index: 100;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            position: fixed; bottom: 3rem; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 0.8rem 1.5rem;
+            font-size: 0.9rem; color: white; z-index: 100; opacity: 0;
+            transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
         }
-
-        .keyboard-hint.visible {
-            opacity: 1;
-        }
-
+        .keyboard-hint.visible { opacity: 1; }
         .keyboard-hint kbd {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 0.2rem 0.6rem;
-            border-radius: 6px;
-            font-family: monospace;
-            font-weight: bold;
-            margin: 0 0.3rem;
+            background: rgba(255, 255, 255, 0.2); color: white; padding: 0.2rem 0.6rem;
+            border-radius: 6px; font-family: monospace; font-weight: bold; margin: 0 0.3rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* 粒子背景 */
         .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden; z-index: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
-
         .particle {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: var(--text-secondary);
-            border-radius: 50%;
-            animation: float 15s infinite;
+            position: absolute; width: 2px; height: 2px; background: var(--text-secondary);
+            border-radius: 50%; animation: float 15s infinite;
         }
-
         @keyframes float {
             0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
             10% { opacity: 1; }
@@ -438,888 +208,627 @@
         }
 
         .container {
-            position: relative;
-            z-index: 1;
-            width: 90%;
-            max-width: 800px;
-            padding: 2rem;
+            position: relative; z-index: 1; width: 90%; max-width: 800px; padding: 2rem;
             transition: opacity 0.3s ease, transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        /* 搜索框 */
-        .search-container {
-            margin-bottom: 3rem;
-            width: 100%;
-            max-width: 600px;
-            animation: fadeIn 1s ease 0.2s both;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
+        .search-container { margin-bottom: 3rem; width: 100%; max-width: 600px; animation: fadeIn 1s ease 0.2s both; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
         .search-box {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 1rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 1rem 1.5rem;
+            display: flex; align-items: center; gap: 0.8rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
-
         .search-box:focus-within {
-            box-shadow: 0 15px 40px var(--accent-glow);
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .search-engine-selector {
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            cursor: pointer;
-            outline: none;
-            font-weight: 600;
-            padding: 0.4rem;
-            border-radius: 8px;
-            transition: background 0.2s;
-        }
-
-        .search-engine-selector:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .search-engine-selector option {
-            background: var(--bg-gradient-2);
-            color: var(--text-primary);
-        }
-
-        .search-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.1rem;
-            outline: none;
-            font-weight: 400;
-        }
-
-        .search-input::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .search-btn {
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-            border: none;
-            color: white;
-            padding: 0.7rem 1.5rem;
-            border-radius: 14px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px var(--accent-glow);
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--accent-glow);
-        }
-
-        /* 快捷方式容器 (Flexbox 居中) */
-        .shortcuts {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 24px;
-            padding: 1rem;
-            width: 100%;
-            animation: fadeIn 1s ease 0.4s both;
-        }
-
-        /* 单个快捷方式 */
-        .shortcut {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            width: 100px;
-            text-decoration: none;
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            border-radius: 16px;
-            padding: 10px 0;
-        }
-
-        .shortcut:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-5px);
-        }
-
-        .shortcut-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            display: block;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-            line-height: 1;
-            transition: transform 0.3s ease;
+            box-shadow: 0 15px 40px var(--accent-glow); transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.3);
         }
         
-        .shortcut-favicon {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 10px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease;
-        }
-
-        .shortcut:hover .shortcut-icon,
-        .shortcut:hover .shortcut-favicon {
-            transform: scale(1.1);
-        }
-
-        .shortcut-name {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            text-align: center;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        /* 右键菜单 */
-        .context-menu {
-            position: fixed;
-            background: rgba(22, 33, 62, 0.9);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 12px;
-            padding: 0.5rem;
-            z-index: 3000;
-            display: none;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
-            min-width: 140px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .context-menu.visible {
-            display: block;
-        }
-
-        .context-menu-item {
-            padding: 0.6rem 0.8rem;
-            cursor: pointer;
-            border-radius: 8px;
+        .search-engine-selector {
+            background: transparent; border: none; color: var(--text-primary); font-size: 0.9rem;
+            cursor: pointer; outline: none; font-weight: 600; padding: 0.4rem; border-radius: 8px;
             transition: background 0.2s;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
         }
-
-        .context-menu-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .search-engine-selector:hover { background: rgba(255, 255, 255, 0.1); }
+        .search-engine-selector option { background: var(--bg-gradient-2); color: var(--text-primary); }
+        
+        .search-input { flex: 1; background: transparent; border: none; color: var(--text-primary); font-size: 1.1rem; outline: none; font-weight: 400; }
+        .search-input::placeholder { color: var(--text-secondary); }
+        
+        .search-btn {
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); border: none;
+            color: white; padding: 0.7rem 1.5rem; border-radius: 14px; cursor: pointer;
+            font-weight: 600; font-size: 0.9rem; transition: all 0.3s ease; box-shadow: 0 4px 15px var(--accent-glow);
         }
+        .search-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px var(--accent-glow); }
 
-        .context-menu-item.danger {
-            color: #ff5c5c;
+        .shortcuts {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 24px;
+            padding: 1rem; width: 100%; animation: fadeIn 1s ease 0.4s both;
         }
+        .shortcut {
+            background: transparent; border: none; box-shadow: none; display: flex;
+            flex-direction: column; align-items: center; justify-content: flex-start;
+            width: 100px; text-decoration: none; color: var(--text-primary);
+            transition: all 0.3s ease; cursor: pointer; position: relative;
+            border-radius: 16px; padding: 10px 0;
+        }
+        .shortcut:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-5px); }
+        .shortcut-icon { font-size: 3rem; margin-bottom: 10px; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); line-height: 1; transition: transform 0.3s ease; }
+        .shortcut-favicon { width: 48px; height: 48px; margin-bottom: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.3s ease; }
+        .shortcut:hover .shortcut-icon, .shortcut:hover .shortcut-favicon { transform: scale(1.1); }
+        .shortcut-name { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
-        /* 编辑对话框 */
+        /* Menus & Dialogs */
+        .context-menu {
+            position: fixed; background: rgba(22, 33, 62, 0.9); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); border-radius: 12px; padding: 0.5rem; z-index: 3000;
+            display: none; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); min-width: 140px; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .context-menu.visible { display: block; }
+        .context-menu-item { padding: 0.6rem 0.8rem; cursor: pointer; border-radius: 8px; transition: background 0.2s; font-size: 0.9rem; display: flex; align-items: center; gap: 0.8rem; }
+        .context-menu-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .context-menu-item.danger { color: #ff5c5c; }
+
         .edit-dialog {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 2500;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
+            z-index: 2500; display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         }
-
-        .edit-dialog.visible {
-            display: flex;
-        }
-
+        .edit-dialog.visible { display: flex; }
         .edit-dialog-content {
-            background: rgba(26, 26, 46, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 2rem;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            background: rgba(26, 26, 46, 0.95); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px; padding: 2rem; width: 90%; max-width: 400px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7); position: relative;
         }
+        .edit-dialog-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; }
 
-        .edit-dialog-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
+        #cropDialog .edit-dialog-content { width: 90vw; max-width: 1000px; height: 80vh; display: flex; flex-direction: column; padding: 1.5rem; }
+        #cropContainer { flex: 1; background: #000; margin: 1rem 0; overflow: hidden; border-radius: 8px; position: relative; }
+        #cropImage { display: block; max-width: 100%; }
 
-        /* 响应式 */
         @media (max-width: 768px) {
-            .shortcuts {
-                gap: 16px;
-            }
-            .shortcut {
-                width: 80px;
-            }
-            .shortcut-icon {
-                font-size: 2.5rem;
-            }
-            .settings-panel {
-                width: 100%;
-                left: -100%;
-            }
-            .top-controls {
-                padding: 1rem;
-            }
+            .shortcuts { gap: 16px; }
+            .shortcut { width: 80px; }
+            .shortcut-icon { font-size: 2.5rem; }
+            .settings-panel { width: 100%; left: -100%; }
+            .top-controls { padding: 1rem; }
         }
     </style>
 </head>
 
 <body>
-    <!-- 自定义背景 -->
     <img id="customBackground" alt="背景">
     <div class="background-overlay"></div>
-
-    <!-- 背景粒子 -->
     <div class="particles" id="particles"></div>
 
-    <!-- 顶部控制按钮 -->
     <div class="top-controls" id="topControls">
         <div class="controls-left">
             <button class="control-btn" onclick="toggleSettings()" title="设置">⚙️</button>
             <button class="control-btn" onclick="showAddDialog()" title="快速添加">➕</button>
+            <button class="control-btn" onclick="changeRandomBackground()" title="切换背景 (R)">🎲</button>
         </div>
         <div class="controls-right">
             <button class="control-btn" onclick="toggleMinimalMode()" id="modeToggle" title="简洁模式 (按 M 切换)">👁️</button>
         </div>
     </div>
 
-    <!-- 设置面板 -->
     <div class="settings-panel" id="settingsPanel">
         <div class="settings-header">
             <h2 class="settings-title">设置</h2>
             <button class="close-settings" onclick="toggleSettings()">×</button>
         </div>
         
-        <!-- 新增：背景显示调节 -->
         <div class="settings-section">
-            <h3 class="settings-section-title">🎨 显示调节</h3>
-            
-            <div class="settings-input-group">
-                <label class="settings-label">
-                    <span>遮罩浓度</span>
-                    <span id="val-overlay">20%</span>
-                </label>
-                <input type="range" id="bgOverlayInput" min="0" max="0.9" step="0.05" value="0.2">
-            </div>
-
-            <div class="settings-input-group">
-                <label class="settings-label">
-                    <span>背景模糊</span>
-                    <span id="val-blur">0px</span>
-                </label>
-                <input type="range" id="bgBlurInput" min="0" max="20" step="1" value="0">
-            </div>
-
-            <div class="settings-input-group">
-                <label class="settings-label">
-                    <span>背景亮度</span>
-                    <span id="val-brightness">100%</span>
-                </label>
-                <input type="range" id="bgBrightnessInput" min="0" max="200" step="5" value="100">
-            </div>
-            
-            <div class="settings-btn-group">
-                <button class="settings-btn-secondary" onclick="resetDisplaySettings()" style="font-size:0.85rem">重置显示参数</button>
+            <h3 class="settings-section-title">🎨 显示调节 (当前背景)</h3>
+            <div id="displayControls">
+                <div class="settings-input-group"><label class="settings-label"><span>遮罩浓度</span><span id="val-overlay">20%</span></label><input type="range" id="bgOverlayInput" min="0" max="0.9" step="0.05" value="0.2"></div>
+                <div class="settings-input-group"><label class="settings-label"><span>背景模糊</span><span id="val-blur">0px</span></label><input type="range" id="bgBlurInput" min="0" max="20" step="1" value="0"></div>
+                <div class="settings-input-group"><label class="settings-label"><span>背景亮度</span><span id="val-brightness">100%</span></label><input type="range" id="bgBrightnessInput" min="0" max="200" step="5" value="100"></div>
             </div>
         </div>
 
         <div class="settings-section">
-            <h3 class="settings-section-title">🖼️ 背景图片</h3>
-            <div class="settings-input-group">
-                <label class="settings-label">图片 URL</label>
-                <input type="text" class="settings-input" id="backgroundUrl" placeholder="https://...">
-            </div>
+            <h3 class="settings-section-title">🖼️ 背景图库 (大容量版)</h3>
+            <div class="settings-label" style="font-size: 0.85rem; margin-bottom: 1rem; color: var(--accent-1);">提示：按键盘 <kbd style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;">R</kbd> 键可快速切换背景</div>
+            <div class="settings-input-group"><label class="settings-label">添加 URL</label><input type="text" class="settings-input" id="backgroundUrlInput" placeholder="https://..."></div>
+            <div class="settings-btn-group" style="margin-bottom: 1rem;"><button class="settings-btn-primary" onclick="addBackgroundFromUrl()">添加 URL</button></div>
+            <div class="settings-input-group"><label class="settings-label">上传本地图片 (不限大小)</label><input type="file" class="settings-input" id="backgroundFiles" accept="image/*" multiple onchange="uploadAndCropBackgrounds()"></div>
+            <div class="bg-image-list" id="bgImageList"></div>
+            <div class="settings-btn-group"><button class="settings-btn-secondary" onclick="clearAllBackgrounds()">清除所有背景</button></div>
+        </div>
+
+        <div class="settings-section">
+            <h3 class="settings-section-title">💾 数据备份与同步</h3>
+            <div class="settings-label">导出配置包含所有设置和图片数据。</div>
             <div class="settings-btn-group">
-                <button class="settings-btn-primary" onclick="setBackground()">应用</button>
-                <button class="settings-btn-secondary" onclick="clearBackground()">清除</button>
-            </div>
-            <div class="settings-input-group" style="margin-top: 1rem;">
-                <label class="settings-label">或上传本地图片</label>
-                <input type="file" class="settings-input" id="backgroundFile" accept="image/*"
-                    onchange="uploadBackground()">
+                <button class="settings-btn-primary" onclick="exportData()">导出配置 (JSON)</button>
+                <button class="settings-btn-secondary" onclick="document.getElementById('importFile').click()">导入配置</button>
+                <input type="file" id="importFile" style="display: none" accept=".json" onchange="importData(this)">
             </div>
         </div>
         
-        <div class="settings-section">
-            <h3 class="settings-section-title">🔗 快捷方式管理</h3>
-            <div class="shortcuts-list" id="shortcutsList"></div>
-        </div>
+        <div class="settings-section"><h3 class="settings-section-title">🔗 快捷方式管理</h3><div class="shortcuts-list" id="shortcutsList"></div></div>
     </div>
 
-    <!-- 快捷添加对话框 -->
     <div class="edit-dialog" id="addDialog">
         <div class="edit-dialog-content">
             <h3 class="edit-dialog-title">添加快捷方式</h3>
-            <div class="settings-input-group">
-                <label class="settings-label">网站名称</label>
-                <input type="text" class="settings-input" id="addName" placeholder="例如：哔哩哔哩">
-            </div>
-            <div class="settings-input-group">
-                <label class="settings-label">网址</label>
-                <input type="text" class="settings-input" id="addUrl" placeholder="https://www.bilibili.com">
-            </div>
-            <div class="settings-input-group">
-                <label class="settings-label">快捷键（可选）</label>
-                <input type="text" class="settings-input" id="addKey" placeholder="例如：b" maxlength="1">
-            </div>
-            <div class="settings-input-group">
-                <label class="settings-label">图标 Emoji（可选）</label>
-                <input type="text" class="settings-input" id="addEmoji" placeholder="例如：📱">
-            </div>
-            <div class="settings-btn-group">
-                <button class="settings-btn-primary" onclick="confirmAdd()">添加</button>
-                <button class="settings-btn-secondary" onclick="closeAddDialog()">取消</button>
-            </div>
+            <div class="settings-input-group"><label class="settings-label">名称</label><input type="text" class="settings-input" id="addName" placeholder="哔哩哔哩"></div>
+            <div class="settings-input-group"><label class="settings-label">网址</label><input type="text" class="settings-input" id="addUrl" placeholder="https://bilibili.com"></div>
+            <div class="settings-input-group"><label class="settings-label">快捷键</label><input type="text" class="settings-input" id="addKey" maxlength="1" placeholder="b"></div>
+            <div class="settings-input-group"><label class="settings-label">Emoji</label><input type="text" class="settings-input" id="addEmoji" placeholder="📱"></div>
+            <div class="settings-btn-group"><button class="settings-btn-primary" onclick="confirmAdd()">添加</button><button class="settings-btn-secondary" onclick="closeAddDialog()">取消</button></div>
         </div>
     </div>
 
-    <!-- 编辑对话框 -->
     <div class="edit-dialog" id="editDialog">
         <div class="edit-dialog-content">
             <h3 class="edit-dialog-title">编辑快捷方式</h3>
-            <div class="settings-input-group">
-                <label class="settings-label">网站名称</label>
-                <input type="text" class="settings-input" id="editName">
-            </div>
-            <div class="settings-input-group">
-                <label class="settings-label">网址</label>
-                <input type="text" class="settings-input" id="editUrl">
-            </div>
-            <div class="settings-input-group">
-                <label class="settings-label">快捷键</label>
-                <input type="text" class="settings-input" id="editKey" maxlength="1">
-            </div>
-            <div class="settings-input-group">
-                <label class="settings-label">图标 Emoji</label>
-                <input type="text" class="settings-input" id="editEmoji">
-            </div>
-            <div class="settings-btn-group">
-                <button class="settings-btn-primary" onclick="confirmEdit()">保存</button>
-                <button class="settings-btn-secondary" onclick="closeEditDialog()">取消</button>
-            </div>
+            <input type="hidden" id="editIndex">
+            <div class="settings-input-group"><label class="settings-label">名称</label><input type="text" class="settings-input" id="editName"></div>
+            <div class="settings-input-group"><label class="settings-label">网址</label><input type="text" class="settings-input" id="editUrl"></div>
+            <div class="settings-input-group"><label class="settings-label">快捷键</label><input type="text" class="settings-input" id="editKey" maxlength="1"></div>
+            <div class="settings-input-group"><label class="settings-label">Emoji</label><input type="text" class="settings-input" id="editEmoji"></div>
+            <div class="settings-btn-group"><button class="settings-btn-primary" onclick="confirmEdit()">保存</button><button class="settings-btn-secondary" onclick="closeEditDialog()">取消</button></div>
+        </div>
+    </div>
+    
+    <div class="edit-dialog" id="cropDialog">
+        <div class="edit-dialog-content">
+            <h3 class="edit-dialog-title" id="cropDialogTitle">裁剪图片</h3>
+            <div id="cropContainer"><img id="cropImage"></div>
+            <div class="settings-btn-group"><button class="settings-btn-primary" onclick="confirmCrop()">确认并添加</button><button class="settings-btn-secondary" onclick="skipAndProcessNext()">跳过</button></div>
         </div>
     </div>
 
-    <!-- 右键菜单 -->
     <div class="context-menu" id="contextMenu">
-        <div class="context-menu-item" onclick="editShortcut()">
-            <span>✏️</span>
-            <span>编辑</span>
-        </div>
-        <div class="context-menu-item danger" onclick="deleteShortcutFromMenu()">
-            <span>🗑️</span>
-            <span>删除</span>
-        </div>
+        <div class="context-menu-item" onclick="editShortcutFromMenu()"><span>✏️</span><span>编辑</span></div>
+        <div class="context-menu-item danger" onclick="deleteShortcutFromMenu()"><span>🗑️</span><span>删除</span></div>
     </div>
 
-    <!-- 快捷键提示 -->
     <div class="keyboard-hint" id="keyboardHint"></div>
 
     <div class="container">
-        <!-- 搜索框 -->
         <div class="search-container">
             <form class="search-box" id="searchForm">
                 <select class="search-engine-selector" id="searchEngine">
-                    <option value="google">Google</option>
-                    <option value="bing">Bing</option>
-                    <option value="baidu">百度</option>
-                    <option value="github">GitHub</option>
+                    <option value="google">Google</option><option value="bing">Bing</option>
+                    <option value="baidu">百度</option><option value="github">GitHub</option>
                     <option value="stackoverflow">SO</option>
                 </select>
-                <input type="text" class="search-input" id="searchInput" placeholder="搜索任何内容..." autocomplete="off"
-                    autofocus>
-                <button type="submit" class="search-btn">搜索</button>
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索..." autocomplete="off" autofocus>
+                <button type="submit" class="search-btn">Go</button>
             </form>
         </div>
-
-        <!-- 快捷方式 -->
         <div class="shortcuts" id="shortcuts"></div>
     </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <script>
-        // ===== 数据与存储工具 =====
-        const SafeStorage = {
-            get: (key, defaultVal) => {
-                try {
-                    const item = localStorage.getItem(key);
-                    return item ? JSON.parse(item) : defaultVal;
-                } catch (e) {
-                    return defaultVal;
-                }
-            },
-            set: (key, value) => {
-                try {
-                    localStorage.setItem(key, JSON.stringify(value));
-                } catch (e) {
-                    if (e.name === 'QuotaExceededError') {
-                        alert('存储空间已满，无法保存更多数据。');
-                    }
-                }
-            },
-            remove: (key) => {
-                try { localStorage.removeItem(key); } catch (e) { }
-            }
-        };
-
-        // ===== 显示设置逻辑 =====
-        const DisplaySettings = {
-            overlay: 0.2,
-            blur: 0,
-            brightness: 100,
-            
-            init() {
-                this.overlay = parseFloat(localStorage.getItem('bgOverlay')) || 0.2;
-                this.blur = parseInt(localStorage.getItem('bgBlur')) || 0;
-                this.brightness = parseInt(localStorage.getItem('bgBrightness')) || 100;
-                
-                this.apply();
-                this.updateInputs();
-                this.bindEvents();
-            },
-
-            apply() {
-                const root = document.documentElement;
-                root.style.setProperty('--bg-overlay-opacity', this.overlay);
-                root.style.setProperty('--bg-blur', this.blur + 'px');
-                root.style.setProperty('--bg-brightness', this.brightness + '%');
-            },
-
-            updateInputs() {
-                document.getElementById('bgOverlayInput').value = this.overlay;
-                document.getElementById('val-overlay').textContent = Math.round(this.overlay * 100) + '%';
-
-                document.getElementById('bgBlurInput').value = this.blur;
-                document.getElementById('val-blur').textContent = this.blur + 'px';
-
-                document.getElementById('bgBrightnessInput').value = this.brightness;
-                document.getElementById('val-brightness').textContent = this.brightness + '%';
-            },
-
-            bindEvents() {
-                document.getElementById('bgOverlayInput').addEventListener('input', (e) => {
-                    this.overlay = e.target.value;
-                    localStorage.setItem('bgOverlay', this.overlay);
-                    this.apply();
-                    document.getElementById('val-overlay').textContent = Math.round(this.overlay * 100) + '%';
+        // ===== IndexedDB Manager =====
+        const IDB = {
+            db: null,
+            init: function() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open('StartPageDB', 1);
+                    request.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('images')) {
+                            db.createObjectStore('images', { keyPath: 'id', autoIncrement: true });
+                        }
+                    };
+                    request.onsuccess = (e) => {
+                        this.db = e.target.result;
+                        resolve();
+                    };
+                    request.onerror = (e) => reject(e);
                 });
-
-                document.getElementById('bgBlurInput').addEventListener('input', (e) => {
-                    this.blur = e.target.value;
-                    localStorage.setItem('bgBlur', this.blur);
-                    this.apply();
-                    document.getElementById('val-blur').textContent = this.blur + 'px';
+            },
+            getAll: function() {
+                return new Promise((resolve) => {
+                    if(!this.db) return resolve([]);
+                    const tx = this.db.transaction('images', 'readonly');
+                    const req = tx.objectStore('images').getAll();
+                    req.onsuccess = () => resolve(req.result || []);
+                    req.onerror = () => resolve([]);
                 });
-
-                document.getElementById('bgBrightnessInput').addEventListener('input', (e) => {
-                    this.brightness = e.target.value;
-                    localStorage.setItem('bgBrightness', this.brightness);
-                    this.apply();
-                    document.getElementById('val-brightness').textContent = this.brightness + '%';
+            },
+            add: function(item) {
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('images', 'readwrite');
+                    const req = tx.objectStore('images').add(item);
+                    req.onsuccess = (e) => resolve(e.target.result);
+                });
+            },
+            update: function(item) {
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('images', 'readwrite');
+                    tx.objectStore('images').put(item);
+                    tx.oncomplete = () => resolve();
+                });
+            },
+            delete: function(id) {
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('images', 'readwrite');
+                    tx.objectStore('images').delete(id);
+                    tx.oncomplete = () => resolve();
+                });
+            },
+            clear: function() {
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('images', 'readwrite');
+                    tx.objectStore('images').clear();
+                    tx.oncomplete = () => resolve();
                 });
             }
         };
 
-        function resetDisplaySettings() {
-            localStorage.removeItem('bgOverlay');
-            localStorage.removeItem('bgBlur');
-            localStorage.removeItem('bgBrightness');
-            DisplaySettings.init();
-        }
+        // ===== State =====
+        const LS = {
+            get: (k, d) => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):d; } catch{ return d; } },
+            set: (k, v) => localStorage.setItem(k, JSON.stringify(v))
+        };
 
-        const DEFAULT_SHORTCUTS = [
+        let shortcuts = LS.get('shortcuts', [
             { name: 'GitHub', url: 'https://github.com', key: 'g', emoji: '🐙' },
-            { name: 'YouTube', url: 'https://www.youtube.com', key: 'y', emoji: '📺' },
-            { name: 'Gmail', url: 'https://mail.google.com', key: 'e', emoji: '📧' },
-            { name: '知乎', url: 'https://www.zhihu.com', key: 'z', emoji: '💡' },
-            { name: '哔哩哔哩', url: 'https://www.bilibili.com', key: 'b', emoji: '📱' },
-            { name: 'Stack Overflow', url: 'https://stackoverflow.com', key: 's', emoji: '💻' }
-        ];
+            { name: 'Bilibili', url: 'https://www.bilibili.com', key: 'b', emoji: '📱' }
+        ]);
+        
+        let bgList = []; 
+        let activeBgIndex = -1;
+        let globalSettings = LS.get('globalDisplay', { blur: 0, brightness: 100, overlay: 0.2 });
+        let isMinimal = false;
+        let uploadQueue = [];
+        let totalUploads = 0;
+        let cropper = null;
+        let ctxMenuIndex = -1;
 
-        // 初始化数据
-        let shortcuts = SafeStorage.get('shortcuts', DEFAULT_SHORTCUTS);
-        const conflictIndex = shortcuts.findIndex(s => s.key === 'm');
-        if (conflictIndex !== -1) {
-            shortcuts[conflictIndex].key = 'e'; 
-            SafeStorage.set('shortcuts', shortcuts);
+        // ===== Main Initialization =====
+        async function init() {
+            await IDB.init();
+            
+            // Migration: Check for legacy localStorage data
+            const legacyBg = LS.get('bgList', []);
+            if(legacyBg.length > 0) {
+                console.log('Migrating legacy images to IDB...');
+                for(let bg of legacyBg) {
+                    const data = (typeof bg === 'string') ? bg : bg.src;
+                    const settings = (typeof bg === 'object' && bg.settings) ? bg.settings : { ...globalSettings };
+                    await IDB.add({ data, settings });
+                }
+                localStorage.removeItem('bgList');
+            }
+
+            bgList = await IDB.getAll();
+            renderShortcuts();
+            renderBgGallery();
+
+            if (bgList.length > 0) {
+                const rnd = Math.floor(Math.random() * bgList.length);
+                applyBackground(rnd);
+            } else {
+                updateDisplayUI(globalSettings);
+            }
+            
+            const pCont = document.getElementById('particles');
+            for(let i=0; i<30; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random()*100+'%';
+                p.style.animationDelay = Math.random()*15+'s';
+                pCont.appendChild(p);
+            }
+
+            const eng = localStorage.getItem('searchEngine');
+            if(eng) document.getElementById('searchEngine').value = eng;
+            document.getElementById('searchEngine').onchange = (e) => localStorage.setItem('searchEngine', e.target.value);
         }
 
-        let isMinimalMode = false;
-        let currentEditIndex = -1;
-        let currentContextIndex = -1;
+        // ===== Background Logic =====
+        function applyBackground(index) {
+            const img = document.getElementById('customBackground');
+            const items = document.querySelectorAll('.bg-image-item');
+            items.forEach(i => i.classList.remove('active'));
 
-        // ===== 搜索功能 =====
-        const searchEngines = {
-            google: 'https://www.google.com/search?q=',
-            bing: 'https://www.bing.com/search?q=',
-            baidu: 'https://www.baidu.com/s?wd=',
-            github: 'https://github.com/search?q=',
-            stackoverflow: 'https://stackoverflow.com/search?q='
-        };
+            if (index >= 0 && index < bgList.length) {
+                activeBgIndex = index;
+                const bg = bgList[index];
+                img.src = bg.data;
+                img.classList.add('visible');
+                document.body.classList.add('has-background');
+                
+                const s = bg.settings || { blur: 0, brightness: 100, overlay: 0.2 };
+                updateDisplayUI(s);
+                if (items[index]) items[index].classList.add('active');
+            } else {
+                activeBgIndex = -1;
+                img.src = '';
+                img.classList.remove('visible');
+                document.body.classList.remove('has-background');
+                updateDisplayUI(globalSettings);
+            }
+        }
+
+        function changeRandomBackground() {
+            if (bgList.length === 0) return;
+            if (bgList.length === 1) {
+                applyBackground(0);
+                return;
+            }
+            
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * bgList.length);
+            } while (newIndex === activeBgIndex);
+            
+            applyBackground(newIndex);
+            
+            const h = document.getElementById('keyboardHint');
+            h.innerHTML = '🎲 已切换背景';
+            h.classList.add('visible');
+            setTimeout(() => h.classList.remove('visible'), 1000);
+        }
+
+        function updateDisplayUI(s) {
+            const r = document.documentElement.style;
+            r.setProperty('--bg-blur', s.blur + 'px');
+            r.setProperty('--bg-brightness', s.brightness + '%');
+            r.setProperty('--bg-overlay-opacity', s.overlay);
+            
+            document.getElementById('bgBlurInput').value = s.blur;
+            document.getElementById('val-blur').innerText = s.blur + 'px';
+            document.getElementById('bgBrightnessInput').value = s.brightness;
+            document.getElementById('val-brightness').innerText = s.brightness + '%';
+            document.getElementById('bgOverlayInput').value = s.overlay;
+            document.getElementById('val-overlay').innerText = Math.round(s.overlay * 100) + '%';
+        }
+
+        function onSliderChange() {
+            const s = {
+                blur: parseInt(document.getElementById('bgBlurInput').value),
+                brightness: parseInt(document.getElementById('bgBrightnessInput').value),
+                overlay: parseFloat(document.getElementById('bgOverlayInput').value)
+            };
+            updateDisplayUI(s);
+            if (activeBgIndex >= 0 && bgList[activeBgIndex]) {
+                bgList[activeBgIndex].settings = s;
+                IDB.update(bgList[activeBgIndex]);
+            } else {
+                globalSettings = s;
+                LS.set('globalDisplay', globalSettings);
+            }
+        }
+        ['bgBlurInput', 'bgBrightnessInput', 'bgOverlayInput'].forEach(id => document.getElementById(id).addEventListener('input', onSliderChange));
+
+        function renderBgGallery() {
+            const div = document.getElementById('bgImageList');
+            div.innerHTML = bgList.map((bg, i) => `
+                <div class="bg-image-item ${i === activeBgIndex ? 'active' : ''}" onclick="applyBackground(${i})">
+                    <img src="${bg.data}" class="bg-image-item-thumb">
+                    <button class="bg-image-item-delete" onclick="deleteBg(${i}); event.stopPropagation()">×</button>
+                </div>
+            `).join('');
+        }
+
+        async function deleteBg(i) {
+            if (!confirm('删除此背景？')) return;
+            await IDB.delete(bgList[i].id);
+            bgList.splice(i, 1);
+            renderBgGallery();
+            if (activeBgIndex === i) applyBackground(-1);
+            else if (activeBgIndex > i) activeBgIndex--;
+        }
+
+        async function clearAllBackgrounds() {
+            if(confirm('清除所有背景图？')) {
+                await IDB.clear();
+                bgList = [];
+                renderBgGallery();
+                applyBackground(-1);
+            }
+        }
+
+        // ===== Image Adding =====
+        async function addBackgroundFromUrl() {
+            const url = document.getElementById('backgroundUrlInput').value.trim();
+            if(url) {
+                const newItem = { data: url, settings: { ...globalSettings } };
+                const id = await IDB.add(newItem);
+                newItem.id = id;
+                bgList.push(newItem);
+                renderBgGallery();
+                document.getElementById('backgroundUrlInput').value = '';
+                if(bgList.length === 1) applyBackground(0);
+            }
+        }
+
+        function uploadAndCropBackgrounds() {
+            const files = document.getElementById('backgroundFiles').files;
+            if(!files.length) return;
+            uploadQueue = Array.from(files);
+            totalUploads = uploadQueue.length;
+            document.getElementById('backgroundFiles').value = '';
+            document.getElementById('settingsPanel').classList.remove('open');
+            processQueue();
+        }
+
+        function processQueue() {
+            if(uploadQueue.length === 0) {
+                document.getElementById('settingsPanel').classList.add('open');
+                renderBgGallery();
+                if (totalUploads > 0 && activeBgIndex === -1 && bgList.length > 0) applyBackground(bgList.length - 1);
+                return;
+            }
+            const file = uploadQueue.shift();
+            const reader = new FileReader();
+            reader.onload = (e) => openCropper(e.target.result);
+            reader.readAsDataURL(file);
+        }
+
+        function openCropper(src) {
+            const title = document.getElementById('cropDialogTitle');
+            title.innerText = `裁剪 (${totalUploads - uploadQueue.length}/${totalUploads})`;
+            const img = document.getElementById('cropImage');
+            img.src = src;
+            document.getElementById('cropDialog').classList.add('visible');
+            if(cropper) cropper.destroy();
+            setTimeout(() => {
+                cropper = new Cropper(img, {
+                    aspectRatio: window.innerWidth / window.innerHeight,
+                    viewMode: 1, dragMode: 'move', autoCropArea: 1
+                });
+            }, 100);
+        }
+
+        async function confirmCrop() {
+            if(!cropper) return;
+            const canvas = cropper.getCroppedCanvas({ width: 3840, height: 2160 });
+            if(canvas) {
+                const base64 = canvas.toDataURL('image/jpeg', 0.85);
+                const newItem = { data: base64, settings: { ...globalSettings } };
+                const id = await IDB.add(newItem);
+                newItem.id = id;
+                bgList.push(newItem);
+            }
+            closeCropper();
+        }
+
+        function skipAndProcessNext() { closeCropper(); }
+        function closeCropper() {
+            if(cropper) { cropper.destroy(); cropper = null; }
+            document.getElementById('cropDialog').classList.remove('visible');
+            processQueue();
+        }
+
+        // ===== Import / Export =====
+        function exportData() {
+            const data = {
+                shortcuts: shortcuts,
+                bgList: bgList,
+                globalSettings: globalSettings,
+                searchEngine: document.getElementById('searchEngine').value
+            };
+            try {
+                const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `startpage-backup-${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch(e) { alert('导出失败：数据量可能过大。'); }
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.shortcuts) LS.set('shortcuts', data.shortcuts);
+                    if (data.globalSettings) LS.set('globalDisplay', data.globalSettings);
+                    if (data.searchEngine) localStorage.setItem('searchEngine', data.searchEngine);
+                    if (data.bgList && Array.isArray(data.bgList)) {
+                        await IDB.clear();
+                        for (let bg of data.bgList) { delete bg.id; await IDB.add(bg); }
+                    }
+                    alert('导入成功！'); location.reload();
+                } catch (err) { alert('导入失败：格式错误。'); }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        // ===== Shortcuts & General =====
+        function renderShortcuts() {
+            document.getElementById('shortcuts').innerHTML = shortcuts.map((s, i) => `
+                <a href="${s.url}" class="shortcut" target="_blank" oncontextmenu="showCtxMenu(event, ${i}); return false;">
+                    ${s.emoji ? `<span class="shortcut-icon">${s.emoji}</span>` : 
+                      `<img src="https://www.google.com/s2/favicons?domain=${new URL(s.url).origin}&sz=128" class="shortcut-favicon" onerror="this.style.display='none';this.previousElementSibling.style.display='block'">`}
+                    <span class="shortcut-name">${s.name}</span>
+                </a>
+            `).join('');
+            document.getElementById('shortcutsList').innerHTML = shortcuts.map((s, i) => `
+                <div class="shortcut-item">
+                    <div class="shortcut-item-info"><div class="shortcut-item-name">${s.name}</div><div class="shortcut-item-url">${s.url}</div></div>
+                    ${s.key ? `<span class="shortcut-item-key">${s.key.toUpperCase()}</span>` : ''}
+                    <button class="shortcut-item-delete" onclick="delShortcut(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function showCtxMenu(e, i) {
+            e.preventDefault(); ctxMenuIndex = i;
+            const m = document.getElementById('contextMenu');
+            m.style.left = Math.min(e.pageX, window.innerWidth - 150) + 'px';
+            m.style.top = Math.min(e.pageY, window.innerHeight - 100) + 'px';
+            m.classList.add('visible');
+        }
+        document.addEventListener('click', (e) => { if(!e.target.closest('.context-menu')) document.getElementById('contextMenu').classList.remove('visible'); });
+
+        function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('open'); }
+        function toggleMinimalMode() { isMinimal = !isMinimal; document.body.classList.toggle('minimal-mode', isMinimal); }
+        function showAddDialog() { document.getElementById('addDialog').classList.add('visible'); }
+        function closeAddDialog() { document.getElementById('addDialog').classList.remove('visible'); }
+        function confirmAdd() {
+            shortcuts.push({
+                name: document.getElementById('addName').value,
+                url: document.getElementById('addUrl').value,
+                key: document.getElementById('addKey').value.toLowerCase(),
+                emoji: document.getElementById('addEmoji').value
+            });
+            LS.set('shortcuts', shortcuts); renderShortcuts(); closeAddDialog();
+        }
+        function delShortcut(i) { if(confirm('删除?')) { shortcuts.splice(i,1); LS.set('shortcuts', shortcuts); renderShortcuts(); } }
+        function deleteShortcutFromMenu() { delShortcut(ctxMenuIndex); }
+        function editShortcutFromMenu() {
+            const s = shortcuts[ctxMenuIndex];
+            document.getElementById('editIndex').value = ctxMenuIndex;
+            document.getElementById('editName').value = s.name;
+            document.getElementById('editUrl').value = s.url;
+            document.getElementById('editKey').value = s.key || '';
+            document.getElementById('editEmoji').value = s.emoji || '';
+            document.getElementById('editDialog').classList.add('visible');
+        }
+        function closeEditDialog() { document.getElementById('editDialog').classList.remove('visible'); }
+        function confirmEdit() {
+            const i = document.getElementById('editIndex').value;
+            shortcuts[i] = {
+                name: document.getElementById('editName').value,
+                url: document.getElementById('editUrl').value,
+                key: document.getElementById('editKey').value.toLowerCase(),
+                emoji: document.getElementById('editEmoji').value
+            };
+            LS.set('shortcuts', shortcuts); renderShortcuts(); closeEditDialog();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.matches('input')) return;
+            if (e.key === '/') { e.preventDefault(); document.getElementById('searchInput').focus(); return; }
+            if (e.key.toLowerCase() === 'm') { toggleMinimalMode(); return; }
+            if (e.key.toLowerCase() === 'r') { changeRandomBackground(); return; }
+            const s = shortcuts.find(x => x.key === e.key.toLowerCase());
+            if(s) window.open(s.url);
+        });
 
         document.getElementById('searchForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const query = document.getElementById('searchInput').value.trim();
-            const engine = document.getElementById('searchEngine').value;
-            if (query) {
-                window.location.href = searchEngines[engine] + encodeURIComponent(query);
-            }
-        });
-
-        // ===== 获取网站图标 =====
-        function getFaviconUrl(url) {
-            try {
-                const domain = new URL(url).origin;
-                return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-            } catch {
-                return null;
-            }
-        }
-
-        // ===== 渲染快捷方式 =====
-        function renderShortcuts() {
-            const container = document.getElementById('shortcuts');
-            container.innerHTML = shortcuts.map((shortcut, index) => {
-                const faviconUrl = getFaviconUrl(shortcut.url);
-                const iconHtml = shortcut.emoji
-                    ? `<span class="shortcut-icon">${shortcut.emoji}</span>`
-                    : faviconUrl
-                        ? `<img src="${faviconUrl}" class="shortcut-favicon" alt="${shortcut.name}">`
-                        : `<span class="shortcut-icon">🔗</span>`;
-
-                return `
-                    <a href="${shortcut.url}" 
-                       class="shortcut" 
-                       target="_blank"
-                       data-index="${index}"
-                       oncontextmenu="showContextMenu(event, ${index}); return false;">
-                        ${iconHtml}
-                        <span class="shortcut-name">${shortcut.name}</span>
-                    </a>
-                `;
-            }).join('');
-        }
-
-        // ===== 渲染设置中的快捷方式列表 =====
-        function renderShortcutsList() {
-            const list = document.getElementById('shortcutsList');
-            list.innerHTML = shortcuts.map((shortcut, index) => {
-                const faviconUrl = getFaviconUrl(shortcut.url);
-                const iconSrc = shortcut.emoji
-                    ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">${shortcut.emoji}</text></svg>`)}`
-                    : faviconUrl;
-
-                return `
-                    <div class="shortcut-item">
-                        <img src="${iconSrc}" class="shortcut-item-icon" alt="">
-                        <div class="shortcut-item-info">
-                            <div class="shortcut-item-name">${shortcut.name}</div>
-                            <div class="shortcut-item-url">${shortcut.url}</div>
-                        </div>
-                        ${shortcut.key ? `<span class="shortcut-item-key">${shortcut.key.toUpperCase()}</span>` : ''}
-                        <button class="shortcut-item-delete" onclick="deleteShortcut(${index})">×</button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // ===== 右键菜单 =====
-        function showContextMenu(e, index) {
-            e.preventDefault();
-            const menu = document.getElementById('contextMenu');
-            const x = Math.min(e.pageX, window.innerWidth - 160);
-            const y = Math.min(e.pageY, window.innerHeight - 100);
-            menu.style.left = x + 'px';
-            menu.style.top = y + 'px';
-            menu.classList.add('visible');
-            currentContextIndex = index;
-        }
-
-        function hideContextMenu() {
-            document.getElementById('contextMenu').classList.remove('visible');
-        }
-
-        document.addEventListener('click', hideContextMenu);
-
-        // ===== 编辑快捷方式 =====
-        function editShortcut() {
-            hideContextMenu();
-            const shortcut = shortcuts[currentContextIndex];
-            currentEditIndex = currentContextIndex;
-            document.getElementById('editName').value = shortcut.name;
-            document.getElementById('editUrl').value = shortcut.url;
-            document.getElementById('editKey').value = shortcut.key || '';
-            document.getElementById('editEmoji').value = shortcut.emoji || '';
-            document.getElementById('editDialog').classList.add('visible');
-        }
-
-        function closeEditDialog() {
-            document.getElementById('editDialog').classList.remove('visible');
-            currentEditIndex = -1;
-        }
-
-        function confirmEdit() {
-            const name = document.getElementById('editName').value.trim();
-            const url = document.getElementById('editUrl').value.trim();
-            const key = document.getElementById('editKey').value.trim().toLowerCase();
-            const emoji = document.getElementById('editEmoji').value.trim();
-
-            if (!name || !url) {
-                alert('请填写网站名称和网址');
-                return;
-            }
-            if (key === 'm') {
-                alert('快捷键 "M" 已被用于切换简洁模式。');
-                return;
-            }
-            if (key && shortcuts.some((s, i) => s.key === key && i !== currentEditIndex)) {
-                alert(`快捷键 "${key}" 已被使用`);
-                return;
-            }
-
-            shortcuts[currentEditIndex] = { name, url, key: key || null, emoji: emoji || null };
-            SafeStorage.set('shortcuts', shortcuts);
-            renderShortcuts();
-            renderShortcutsList();
-            closeEditDialog();
-        }
-
-        // ===== 快速添加 =====
-        function showAddDialog() {
-            document.getElementById('addDialog').classList.add('visible');
-        }
-
-        function closeAddDialog() {
-            document.getElementById('addDialog').classList.remove('visible');
-            document.getElementById('addName').value = '';
-            document.getElementById('addUrl').value = '';
-            document.getElementById('addKey').value = '';
-            document.getElementById('addEmoji').value = '';
-        }
-
-        function confirmAdd() {
-            const name = document.getElementById('addName').value.trim();
-            const url = document.getElementById('addUrl').value.trim();
-            const key = document.getElementById('addKey').value.trim().toLowerCase();
-            const emoji = document.getElementById('addEmoji').value.trim();
-
-            if (!name || !url) {
-                alert('请填写网站名称和网址');
-                return;
-            }
-            if (key === 'm') {
-                alert('快捷键 "M" 已被用于切换简洁模式。');
-                return;
-            }
-            if (key && shortcuts.some(s => s.key === key)) {
-                alert(`快捷键 "${key}" 已被使用`);
-                return;
-            }
-
-            shortcuts.push({ name, url, key: key || null, emoji: emoji || null });
-            SafeStorage.set('shortcuts', shortcuts);
-            renderShortcuts();
-            renderShortcutsList();
-            closeAddDialog();
-        }
-
-        // ===== 删除快捷方式 =====
-        function deleteShortcutFromMenu() {
-            hideContextMenu();
-            if (confirm('确定要删除这个快捷方式吗？')) {
-                shortcuts.splice(currentContextIndex, 1);
-                SafeStorage.set('shortcuts', shortcuts);
-                renderShortcuts();
-                renderShortcutsList();
-            }
-        }
-
-        function deleteShortcut(index) {
-            if (confirm('确定要删除这个快捷方式吗？')) {
-                shortcuts.splice(index, 1);
-                SafeStorage.set('shortcuts', shortcuts);
-                renderShortcuts();
-                renderShortcutsList();
-            }
-        }
-
-        // ===== 设置背景 =====
-        function setBackground() {
-            const url = document.getElementById('backgroundUrl').value.trim();
-            if (url) {
-                const img = document.getElementById('customBackground');
-                img.src = url;
-                img.classList.add('visible');
-                document.body.classList.add('has-background');
-                try { localStorage.setItem('backgroundUrl', url); } catch (e) { }
-            }
-        }
-
-        function clearBackground() {
-            const img = document.getElementById('customBackground');
-            img.src = '';
-            img.classList.remove('visible');
-            document.body.classList.remove('has-background');
-            SafeStorage.remove('backgroundUrl');
-            document.getElementById('backgroundUrl').value = '';
-        }
-
-        function uploadBackground() {
-            const file = document.getElementById('backgroundFile').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = document.getElementById('customBackground');
-                    img.src = e.target.result;
-                    img.classList.add('visible');
-                    document.body.classList.add('has-background');
-                    try {
-                        localStorage.setItem('backgroundUrl', e.target.result);
-                    } catch (e) {
-                        alert('图片过大，仅当前会话有效，建议压缩图片或使用 URL。');
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // ===== 切换设置面板 =====
-        function toggleSettings() {
-            document.getElementById('settingsPanel').classList.toggle('open');
-        }
-
-        // ===== 切换简洁模式 =====
-        function toggleMinimalMode() {
-            isMinimalMode = !isMinimalMode;
-            document.body.classList.toggle('minimal-mode', isMinimalMode);
-            document.getElementById('modeToggle').textContent = isMinimalMode ? '🖼️' : '👁️';
-            
-            const hint = document.getElementById('keyboardHint');
-            hint.innerHTML = isMinimalMode ? '已开启简洁模式' : '已关闭简洁模式';
-            hint.classList.add('visible');
-            setTimeout(() => hint.classList.remove('visible'), 1500);
-        }
-
-        // ===== 粒子效果函数 =====
-        function createParticles() {
-            const particles = document.getElementById('particles');
-            if (!particles) return;
-            const particleCount = 30;
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 15 + 's';
-                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-                particles.appendChild(particle);
-            }
-        }
-
-        // ===== 键盘快捷键 =====
-        document.addEventListener('keydown', (e) => {
-            if (e.target.matches('input, textarea, select')) {
-                if (e.key === 'Escape' && e.target.id === 'searchInput') {
-                    e.target.value = '';
-                    e.target.blur();
-                }
-                return;
-            }
-
-            if (e.key === '/') {
-                e.preventDefault();
-                document.getElementById('searchInput').focus();
-                return;
-            }
-
-            if (e.key.toLowerCase() === 'm') {
-                e.preventDefault();
-                toggleMinimalMode();
-                return;
-            }
-
-            const key = e.key.toLowerCase();
-            const shortcut = shortcuts.find(s => s.key === key);
-            if (shortcut) {
-                const hint = document.getElementById('keyboardHint');
-                hint.innerHTML = `正在打开 <kbd>${key.toUpperCase()}</kbd> ${shortcut.name}...`;
-                hint.classList.add('visible');
-
-                setTimeout(() => {
-                    window.open(shortcut.url, '_blank');
-                    hint.classList.remove('visible');
-                }, 500);
-            }
-        });
-
-        // ===== 初始化 =====
-        function init() {
-            createParticles();
-            renderShortcuts();
-            renderShortcutsList();
-            DisplaySettings.init(); // 初始化显示设置
-
-            let bgStr = null;
-            try { bgStr = localStorage.getItem('backgroundUrl'); } catch(e) {}
-            
-            if (bgStr) {
-                const img = document.getElementById('customBackground');
-                img.src = bgStr;
-                img.classList.add('visible');
-                document.body.classList.add('has-background');
-                document.getElementById('backgroundUrl').value = bgStr.startsWith('data:') ? '本地图片' : bgStr;
-            }
-
-            const savedEngine = localStorage.getItem('searchEngine');
-            if (savedEngine) {
-                document.getElementById('searchEngine').value = savedEngine;
-            }
-        }
-
-        document.getElementById('searchEngine').addEventListener('change', (e) => {
-            try { localStorage.setItem('searchEngine', e.target.value); } catch(e){}
+            const q = document.getElementById('searchInput').value.trim();
+            const map = {
+                google: 'https://www.google.com/search?q=', bing: 'https://www.bing.com/search?q=',
+                baidu: 'https://www.baidu.com/s?wd=', github: 'https://github.com/search?q=',
+                stackoverflow: 'https://stackoverflow.com/search?q='
+            };
+            if(q) location.href = map[document.getElementById('searchEngine').value] + encodeURIComponent(q);
         });
 
         init();
     </script>
 </body>
-
 </html>
